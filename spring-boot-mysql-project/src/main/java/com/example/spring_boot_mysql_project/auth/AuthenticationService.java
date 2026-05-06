@@ -19,7 +19,15 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    // **Registrazione**
     public AuthenticationResponse register(RegisterRequest request) {
+        // Controlla se esiste già un utente con quella email
+        // findByEmail restituisce un Optional — isPresent() è true se l'utente esiste
+        if (repository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email già registrata: " + request.getEmail());
+        }
+        //costruisco l'oggetto user con i parametri dalla richiesta,
+        // la password criptata e Role che è user di default
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
@@ -27,25 +35,26 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .build();
-        repository.save(user);
-        var jwtToken = jwtService.generateToken(user);
+        repository.save(user); //salva l'utente nella tabella user (repository - database)
+        var jwtToken = jwtService.generateToken(user); //genera token JWT contenente info utente
         return AuthenticationResponse.builder()
                 .token(jwtToken)
-                .build();
+                .build(); //restituisce il token al client
     }
 
+    // **Autenticazione(login)**
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
+        authenticationManager.authenticate( //controlla che email e password siano corrette
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
                 )
-        );
+        ); // confronta la password inserita con quella salvata (criptata) nel database
         var user = repository.findByEmail(request.getEmail())
-                .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+                .orElseThrow(); //recupero utente (e tutti i suoi dati) dal DB
+        var jwtToken = jwtService.generateToken(user); //generazione JWT
         return AuthenticationResponse.builder()
                 .token(jwtToken)
-                .build();
+                .build(); //ritorna il token al client
     }
 }

@@ -25,6 +25,8 @@ public class User implements UserDetails {
     private Integer id;
     private String firstname;
     private String lastname;
+    @Column(unique = true) //aggiungo il vincolo UNIQUE sulla colonna email
+    //quindi MySQL blocca i duplicati a livello di database
     private String email;
     private String password;
 
@@ -33,7 +35,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

@@ -13,13 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationService service;
-
+    // richiesta POST da json lato client,
+    // viene trasformato in RegisterRequest (tutti i parametri) e passa al service
     @PostMapping(value = "/register")
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request
     ) {
         return ResponseEntity.ok(service.register(request));
     }
+    // richiesta POST da json lato client,
+    // viene trasformato in AuthenticationRequest (email/password) e passa al service
     @PostMapping(value = "/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest request
